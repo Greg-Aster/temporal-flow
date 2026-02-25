@@ -1,0 +1,1 @@
+import{L as e}from"./index.bwX6JCdY.js";const s={lang:"en",defaultTheme:e};export{s};

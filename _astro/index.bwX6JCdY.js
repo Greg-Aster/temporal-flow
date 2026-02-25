@@ -1,0 +1,1 @@
+const s="light",t="dark",a="auto";export{a as A,t as D,s as L};

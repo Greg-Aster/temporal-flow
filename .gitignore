@@ -1,0 +1,30 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Build artifacts
+dist/
+**/dist/
+public/downloads/
+**/public/downloads/
+.astro/
+**/.astro/
+
+# Logs and temp files
+*.log
+*.tmp
+.DS_Store
+
+# IDE/system
+.vscode/
+.idea/
+.claude/
+
+# Environment/secrets
+.env
+.env.*
+!.env.example
+
+# Cache
+.pnpm-store/
+*.tsbuildinfo

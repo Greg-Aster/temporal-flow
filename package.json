@@ -1,0 +1,21 @@
+{
+  "name": "temporal-flow",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "pnpm --filter @temporal-flow/example dev",
+    "build": "pnpm --filter @temporal-flow/example build",
+    "preview": "pnpm --filter @temporal-flow/example preview",
+    "build:all": "pnpm -r build",
+    "lint:all": "pnpm -r lint",
+    "format:all": "pnpm -r format",
+    "type-check:all": "pnpm -r type-check"
+  },
+  "devDependencies": {
+    "pnpm": "^9.0.0"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  }
+}

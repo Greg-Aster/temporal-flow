@@ -34,7 +34,7 @@ export const aboutConfig: AboutConfig = {
     title: "Get In Touch",
     description: "Have questions, ideas, or want to collaborate? We'd love to hear from you! Please Email", // Match original text
     contactInfo: {
-      email: "your@email.com" // Match the original email
+      email: "Greg@dndiy.org" // Match the original email
     },
     displayOrder: ["description", "email"] // Match the original order
   }

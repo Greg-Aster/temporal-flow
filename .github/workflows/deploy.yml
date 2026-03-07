@@ -39,8 +39,6 @@ jobs:
       - name: Build
         run: pnpm build
         env:
-          # Lets Astro set the correct base path when serving from a github.io
-          # subdirectory URL (no-op if you have a custom domain via CNAME)
           SITE: ${{ steps.pages.outputs.origin }}
           BASE_PATH: ${{ steps.pages.outputs.base_path }}
 

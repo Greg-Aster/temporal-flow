@@ -360,6 +360,7 @@ const setup = () => {
     
     window.swup.hooks.on('content:replace', () => {
         // Run initialization for new content
+        syncScrollTargets();
         initCustomScrollbar();
     });
     
@@ -398,6 +399,7 @@ const setup = () => {
 	});
     
     window.swup.hooks.on('page:view', () => {
+        syncScrollTargets();
         // Handle animations after page view
         const postElements = document.querySelectorAll('.onload-animation');
         postElements.forEach((element, index) => {
@@ -446,6 +448,14 @@ let backToTopBtn = document.getElementById('back-to-top-btn');
 let toc = document.getElementById('toc-wrapper');
 let navbar = document.getElementById('navbar-wrapper');
 
+function syncScrollTargets() {
+    backToTopBtn = document.getElementById('back-to-top-btn');
+    toc = document.getElementById('toc-wrapper');
+    navbar = document.getElementById('navbar-wrapper');
+}
+
+document.addEventListener('astro:page-load', syncScrollTargets);
+
 function scrollFunction() {
     // Back-to-top button visibility
 // Back-to-top button visibility
@@ -459,13 +469,7 @@ if (backToTopBtn) {
 
 // TOC visibility
 if (toc) {
-    if (toc.dataset.railMode === 'widget') {
-        toc.classList.remove('toc-hide');
-    } else if (document.body.scrollTop > 300 || document.documentElement.scrollTop > 300) {
-        toc.classList.remove('toc-hide');
-    } else {
-        toc.classList.add('toc-hide');
-    }
+    toc.classList.remove('toc-hide');
 }
 
 // Navbar visibility - simplified

@@ -489,7 +489,7 @@ Display Order</h4>
               aboutConfig.contact.enabled = true;
               aboutConfig.contact.title = "Get In Touch";
               aboutConfig.contact.description = "Have questions, ideas, or want to collaborate? We'd love to hear from you! Please Email";
-              aboutConfig.contact.contactInfo.email = "your@email.com";
+              aboutConfig.contact.contactInfo.email = "Greg@dndiy.org";
               aboutConfig.contact.displayOrder = ["description", "email"];
               
               notifyChanges();

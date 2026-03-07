@@ -72,7 +72,7 @@ export const navBarConfig: NavBarConfig = {
 }
 
 export const profileConfig: ProfileConfig = {
-  avatar: "/avatar/avatar.svg",
+  avatar: "/src/content/avatar/avatar.png",
   name: "Site Owner",
   bio: "Content Creator & Digital Storyteller",
   links: [
@@ -92,7 +92,7 @@ export const profileConfig: ProfileConfig = {
       url: "https://bsky.app/profile/"
     }
   ],
-  avatarFilename: "avatar.svg"
+  avatarFilename: "ComfyUI_0003.png"
 }
 
 export const licenseConfig: LicenseConfig = {

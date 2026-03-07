@@ -1,0 +1,509 @@
+#!/usr/bin/env bash
+# =============================================================================
+# sync-to-temporal-flow.sh
+#
+# Prepares the temporal-flow-export/ directory from the Merkin monorepo.
+# The export is a clean, public version of the blog-core framework with a
+# generic example site — no personal content.
+#
+# The export directory has its own .git repo pointing at the public
+# Temporal Flow GitHub repo (separate from Merkin).
+#
+# Usage:
+#   bash scripts/sync-to-temporal-flow.sh
+#
+# First-time setup (after running this script):
+#   cd temporal-flow-export
+#   git init
+#   git remote add origin https://github.com/YOURUSERNAME/temporal-flow.git
+#   git add .
+#   git commit -m "feat: monorepo template v2"
+#   git push -u origin main
+#
+# Subsequent syncs:
+#   bash scripts/sync-to-temporal-flow.sh
+#   cd temporal-flow-export
+#   git add .
+#   git commit -m "sync: update blog-core from merkin"
+#   git push
+# =============================================================================
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+MERKIN_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+EXPORT_DIR="$MERKIN_ROOT/temporal-flow-export"
+
+echo "==> Syncing Merkin → temporal-flow-export"
+echo "    Source: $MERKIN_ROOT"
+echo "    Export: $EXPORT_DIR"
+echo ""
+
+# -----------------------------------------------------------------------------
+# Helper: rename @merkin/blog-core → @temporal-flow/blog-core in a file
+# -----------------------------------------------------------------------------
+rename_package_refs() {
+  local file="$1"
+  if [[ -f "$file" ]]; then
+    sed -i \
+      -e 's/@merkin\/blog-core/@temporal-flow\/blog-core/g' \
+      -e 's/@merkin\/travel/@temporal-flow\/example/g' \
+      -e 's/@merkin\/megameal/@temporal-flow\/example/g' \
+      "$file"
+  fi
+}
+
+# -----------------------------------------------------------------------------
+# 1. Prepare export directory (preserve .git if it exists)
+# -----------------------------------------------------------------------------
+echo "==> [1/7] Preparing export directory..."
+
+# Preserve the .git dir if it exists
+if [[ -d "$EXPORT_DIR/.git" ]]; then
+  TMP_GIT=$(mktemp -d)
+  cp -r "$EXPORT_DIR/.git" "$TMP_GIT/"
+  rm -rf "$EXPORT_DIR"
+  mkdir -p "$EXPORT_DIR"
+  cp -r "$TMP_GIT/.git" "$EXPORT_DIR/"
+  rm -rf "$TMP_GIT"
+  echo "    Preserved existing .git directory"
+else
+  rm -rf "$EXPORT_DIR"
+  mkdir -p "$EXPORT_DIR"
+  echo "    Created fresh export directory (no .git found — run git init manually)"
+fi
+
+mkdir -p "$EXPORT_DIR/packages"
+mkdir -p "$EXPORT_DIR/apps"
+mkdir -p "$EXPORT_DIR/scripts"
+mkdir -p "$EXPORT_DIR/.github/workflows"
+
+# -----------------------------------------------------------------------------
+# 2. Copy packages/blog-core (rename @merkin → @temporal-flow)
+# -----------------------------------------------------------------------------
+echo "==> [2/7] Copying packages/blog-core..."
+
+rsync -a --exclude='node_modules' --exclude='dist' --exclude='.astro' \
+  "$MERKIN_ROOT/packages/blog-core/" "$EXPORT_DIR/packages/blog-core/"
+
+# Rename package name in package.json
+sed -i 's/"@merkin\/blog-core"/"@temporal-flow\/blog-core"/g' \
+  "$EXPORT_DIR/packages/blog-core/package.json"
+
+# Rename all internal references in TypeScript/Astro/Svelte source files
+find "$EXPORT_DIR/packages/blog-core/src" -type f \( -name "*.ts" -o -name "*.astro" -o -name "*.svelte" -o -name "*.json" \) | while read -r file; do
+  rename_package_refs "$file"
+done
+
+echo "    Done — @temporal-flow/blog-core"
+
+# -----------------------------------------------------------------------------
+# 3. Copy Temporal-Flow as apps/example (copy everything; it IS the template)
+# -----------------------------------------------------------------------------
+echo "==> [3/7] Creating apps/example from Temporal-Flow..."
+
+TF_SRC="$MERKIN_ROOT/Temporal-Flow"
+EXAMPLE_DST="$EXPORT_DIR/apps/example"
+
+# Copy everything except build artifacts, secrets, and generated PDFs.
+# All content, assets, config, and posts are intentional template content.
+rsync -a \
+  --exclude='node_modules' --exclude='dist' --exclude='.astro' \
+  --exclude='public/downloads' \
+  --exclude='CNAME' \
+  --exclude='.env' \
+  --exclude='.env.*' \
+  "$TF_SRC/" "$EXAMPLE_DST/"
+
+# Rename package references in copied files
+find "$EXAMPLE_DST" -type f \( -name "*.ts" -o -name "*.astro" -o -name "*.svelte" -o -name "*.mjs" -o -name "*.json" \) | while read -r file; do
+  rename_package_refs "$file"
+done
+
+# Update package name and strip Merkin-specific build step from package.json
+if [[ -f "$EXAMPLE_DST/package.json" ]]; then
+  sed -i 's/"name": "[^"]*"/"name": "@temporal-flow\/example"/g' "$EXAMPLE_DST/package.json"
+  sed -i 's/ && node \.\.\/scripts\/generate-post-pdfs\.mjs --app \.//g' "$EXAMPLE_DST/package.json"
+fi
+
+# Remove CNAME — without it, astro.config.mjs auto-detects the GitHub Pages subpath.
+# Users with a custom domain should create apps/example/CNAME containing their domain.
+rm -f "$EXAMPLE_DST/CNAME"
+
+echo "    Done — apps/example (full Temporal-Flow copy)"
+
+# -----------------------------------------------------------------------------
+# 4. (Temporal-Flow content and assets are the template demo — nothing to replace)
+# -----------------------------------------------------------------------------
+echo "==> [4/7] Skipping placeholder generation — Temporal-Flow assets are the demo"
+
+# -----------------------------------------------------------------------------
+# 5. Copy shared scripts
+# -----------------------------------------------------------------------------
+echo "==> [5/7] Copying scripts..."
+
+cp "$MERKIN_ROOT/scripts/deploy-pages-with-retry.sh" "$EXPORT_DIR/scripts/"
+chmod +x "$EXPORT_DIR/scripts/deploy-pages-with-retry.sh"
+
+# Create a generic new-post script for the example
+cat > "$EXPORT_DIR/scripts/new-post.js" << 'JSEOF'
+#!/usr/bin/env node
+/**
+ * Create a new blog post with today's date.
+ * Usage: node scripts/new-post.js "My Post Title"
+ */
+import { writeFileSync, mkdirSync } from 'fs'
+import { join, dirname } from 'path'
+import { fileURLToPath } from 'url'
+
+const __dirname = dirname(fileURLToPath(import.meta.url))
+const title = process.argv[2] || 'New Post'
+const date = new Date().toISOString().split('T')[0]
+const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+const filename = `${date}-${slug}.md`
+const postsDir = join(__dirname, '..', 'src', 'content', 'posts')
+
+mkdirSync(postsDir, { recursive: true })
+
+const content = `---
+title: "${title}"
+published: ${date}
+description: ""
+tags: []
+category: ""
+---
+
+Write your post here.
+`
+
+const filepath = join(postsDir, filename)
+writeFileSync(filepath, content)
+console.log(`Created: src/content/posts/${filename}`)
+JSEOF
+
+echo "    Done"
+
+# -----------------------------------------------------------------------------
+# 6. Write root workspace config files
+# -----------------------------------------------------------------------------
+echo "==> [6/7] Writing root config files..."
+
+# pnpm-workspace.yaml
+cat > "$EXPORT_DIR/pnpm-workspace.yaml" << 'EOF'
+packages:
+  - 'apps/*'
+  - 'packages/*'
+EOF
+
+# .npmrc
+cat > "$EXPORT_DIR/.npmrc" << 'EOF'
+shamefully-hoist=false
+EOF
+
+# Root package.json
+cat > "$EXPORT_DIR/package.json" << 'EOF'
+{
+  "name": "temporal-flow",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "pnpm --filter @temporal-flow/example dev",
+    "build": "pnpm --filter @temporal-flow/example build",
+    "preview": "pnpm --filter @temporal-flow/example preview",
+    "build:all": "pnpm -r build",
+    "lint:all": "pnpm -r lint",
+    "format:all": "pnpm -r format",
+    "type-check:all": "pnpm -r type-check"
+  },
+  "devDependencies": {
+    "pnpm": "^9.0.0"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  }
+}
+EOF
+
+# .gitignore
+cat > "$EXPORT_DIR/.gitignore" << 'EOF'
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Build artifacts
+dist/
+**/dist/
+public/downloads/
+**/public/downloads/
+.astro/
+**/.astro/
+
+# Logs and temp files
+*.log
+*.tmp
+.DS_Store
+
+# IDE/system
+.vscode/
+.idea/
+.claude/
+
+# Environment/secrets
+.env
+.env.*
+!.env.example
+
+# Cache
+.pnpm-store/
+*.tsbuildinfo
+EOF
+
+# GitHub Actions workflow for GitHub Pages
+cat > "$EXPORT_DIR/.github/workflows/deploy.yml" << 'EOF'
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Setup Pages
+        id: pages
+        uses: actions/configure-pages@v5
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm build
+        env:
+          SITE: ${{ steps.pages.outputs.origin }}
+          BASE_PATH: ${{ steps.pages.outputs.base_path }}
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: apps/example/dist
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+EOF
+
+echo "    Done"
+
+# README.md
+cat > "$EXPORT_DIR/README.md" << 'MDEOF'
+# Temporal Flow — Blog Family Starter Kit
+
+A **pnpm monorepo** for running multiple interconnected Astro blogs from a single codebase, with a shared `blog-core` package powering everything.
+
+**Live demo:** [temporalflow.org](https://temporalflow.org)
+
+---
+
+## What Is This?
+
+Temporal Flow lets you run a *family* of connected blogs — each with its own look, content, and domain — while sharing a common component library. The blogs can optionally federate with each other, showing posts and updates across sites via RSS.
+
+```
+temporal-flow/
+├── packages/
+│   └── blog-core/          # Shared components, layouts, schemas, styles
+├── apps/
+│   └── example/            # Your first blog (start here)
+├── scripts/                # Deploy helpers
+├── .github/workflows/      # CI/CD for GitHub Pages
+├── package.json            # Root workspace
+└── pnpm-workspace.yaml
+```
+
+---
+
+## Quick Start
+
+```bash
+# 1. Fork this repo on GitHub, then:
+git clone https://github.com/YOUR_USERNAME/temporal-flow.git
+cd temporal-flow
+
+# 2. Install dependencies
+pnpm install
+
+# 3. Start the dev server
+pnpm dev
+# Open http://localhost:4321
+```
+
+---
+
+## Configure Your Site
+
+Edit `apps/example/src/config/config.ts`:
+
+```ts
+export const siteConfig: SiteConfig = {
+  title: "My Blog",
+  themeColor: { hue: 145 },  // 0=red 145=green 220=blue 270=purple
+  defaultTheme: LIGHT_MODE,
+}
+
+export const profileConfig: ProfileConfig = {
+  name: "Your Name",
+  bio: "Writer, thinker, maker.",
+  links: [
+    { name: "GitHub", icon: "fa6-brands:github", url: "https://github.com/yourname" },
+  ],
+}
+```
+
+---
+
+## Writing Posts
+
+```bash
+node scripts/new-post.js "My Post Title"
+# → creates src/content/posts/YYYY-MM-DD-my-post-title.md
+```
+
+**Frontmatter:**
+```yaml
+---
+title: "My Post"
+published: 2024-03-15
+description: "A short description."
+tags: ["tutorial"]
+category: "Guide"
+---
+```
+
+---
+
+## Adding a Second Site
+
+```bash
+cp -r apps/example apps/my-travel-blog
+# Update package name in apps/my-travel-blog/package.json
+# Update hue/title in src/config/config.ts
+# Add scripts to root package.json:
+#   "dev:travel": "pnpm --filter @temporal-flow/my-travel-blog dev"
+pnpm dev:travel
+```
+
+---
+
+## Federation (Connecting Blogs)
+
+Each site generates `/rss.xml`. To follow another Temporal Flow blog, click **Friends** in the sidebar and paste their RSS URL. Posts appear in your feed — no central server needed.
+
+---
+
+## Deploying
+
+### GitHub Pages (included)
+
+Push to `main` — GitHub Actions builds and deploys automatically via `.github/workflows/deploy.yml`.
+
+For a **custom domain**: create `apps/example/CNAME` containing your domain name.
+
+### Cloudflare Pages
+
+Set build command: `pnpm build` and output directory: `apps/example/dist`.
+
+---
+
+## Architecture
+
+- `packages/blog-core/` — shared components, layouts, schemas, styles
+- `apps/example/` — the example site; fork this to create new sites
+- Override any component by placing a file at the same path in your app
+
+---
+
+## Technology Stack
+
+| Tool | Purpose |
+|------|---------|
+| [Astro 5](https://astro.build) | Static site generator |
+| [Svelte 5](https://svelte.dev) | Interactive components |
+| [Tailwind CSS](https://tailwindcss.com) | Styling |
+| [Pagefind](https://pagefind.app) | Full-text search |
+| [pnpm](https://pnpm.io) | Package manager |
+
+---
+
+## License
+
+[MIT](apps/example/LICENSE.md) — fork freely, make it yours.
+MDEOF
+echo "    README.md written"
+
+# Regenerate root pnpm-lock.yaml so CI can use --frozen-lockfile
+echo "    Regenerating pnpm-lock.yaml..."
+(cd "$EXPORT_DIR" && pnpm install --silent 2>/dev/null || pnpm install)
+echo "    pnpm-lock.yaml regenerated"
+
+# -----------------------------------------------------------------------------
+# 7. Report
+# -----------------------------------------------------------------------------
+echo ""
+echo "==> [7/7] Sync complete!"
+echo ""
+echo "    Export directory: $EXPORT_DIR"
+echo ""
+echo "    Contents:"
+find "$EXPORT_DIR" -maxdepth 3 -not -path '*/.git/*' -not -path '*/node_modules/*' \
+  | sort | sed 's|'"$EXPORT_DIR"'/||' | sed 's|^|    |'
+echo ""
+
+if [[ ! -d "$EXPORT_DIR/.git" ]]; then
+  echo "  NEXT STEPS (first time):"
+  echo "  ─────────────────────────────────────────────────────────────"
+  echo "  cd temporal-flow-export"
+  echo "  git init"
+  echo "  git remote add origin https://github.com/YOURUSERNAME/temporal-flow.git"
+  echo "  git add ."
+  echo "  git commit -m 'feat: monorepo template v2'"
+  echo "  git push -u origin main"
+else
+  echo "  NEXT STEPS (sync update):"
+  echo "  ─────────────────────────────────────────────────────────────"
+  echo "  cd temporal-flow-export"
+  echo "  git status          # review changes"
+  echo "  git add ."
+  echo "  git commit -m 'sync: update blog-core from merkin $(date +%Y-%m-%d)'"
+  echo "  git push"
+fi
+echo ""

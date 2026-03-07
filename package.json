@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "pnpm --filter @temporal-flow/example dev",
-    "build": "pnpm --filter @temporal-flow/example build",
-    "preview": "pnpm --filter @temporal-flow/example preview",
+    "dev": "pnpm --filter temporal-flow dev",
+    "build": "pnpm --filter temporal-flow build",
+    "preview": "pnpm --filter temporal-flow preview",
     "build:all": "pnpm -r build",
     "lint:all": "pnpm -r lint",
     "format:all": "pnpm -r format",

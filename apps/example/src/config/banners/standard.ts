@@ -2,21 +2,19 @@ import type {
   BannerAnimationConfig,
   BannerItem,
   BannerItemPreviewDetails,
-  ImageBannerItem,
   LinkPreviewInfo,
   StandardBannerData,
   VideoBannerConfig,
 } from './types'
 import { isImageBannerItem, isVideoBannerItem } from './types'
 
-import banner1 from '@/assets/banner/0001.png'
-import banner2 from '@/assets/banner/0002.png'
-import banner3 from '@/assets/banner/0003.png'
-import banner4 from '@/assets/banner/0004.png'
-import banner5 from '@/assets/banner/0005.png'
-import banner6 from '@/assets/banner/0006.png'
-import banner7 from '@/assets/banner/0007.png'
-import banner8 from '@/assets/banner/0008.png'
+// Banners are disabled in the example site (see config.ts: banner.enable = false).
+// To enable banners, add your own images to src/assets/banner/ and import them here:
+//
+//   import banner1 from '@/assets/banner/banner1.jpg'
+//   export const bannerList: BannerItem[] = [
+//     { type: 'image', src: banner1, alt: 'My banner' } as ImageBannerItem,
+//   ]
 
 export const standardBannerData: StandardBannerData = {}
 
@@ -29,20 +27,11 @@ export const videoConfig: VideoBannerConfig = {
   preload: 'none',
 }
 
-export const bannerList: BannerItem[] = [
-  { type: 'image', src: banner1, alt: 'Banner image 1' } as ImageBannerItem,
-  { type: 'image', src: banner2, alt: 'Banner image 2' } as ImageBannerItem,
-  { type: 'image', src: banner3, alt: 'Banner image 3' } as ImageBannerItem,
-  { type: 'image', src: banner4, alt: 'Banner image 4' } as ImageBannerItem,
-  { type: 'image', src: banner5, alt: 'Banner image 5' } as ImageBannerItem,
-  { type: 'image', src: banner6, alt: 'Banner image 6' } as ImageBannerItem,
-  { type: 'image', src: banner7, alt: 'Banner image 7' } as ImageBannerItem,
-  { type: 'image', src: banner8, alt: 'Banner image 8' } as ImageBannerItem,
-]
+export const bannerList: BannerItem[] = []
 
-export const bannerLinks: (string | null)[] = bannerList.map(() => null)
+export const bannerLinks: (string | null)[] = []
 
-export const defaultBanner: BannerItem = bannerList[0]
+export const defaultBanner: BannerItem | null = null
 
 export const linkPreviewData: Record<string, LinkPreviewInfo> = {}
 

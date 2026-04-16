@@ -1,5 +1,5 @@
 <script>
-  import SharedLoginForm from '@merkin/blog-core/components/svelte/admin/LoginForm.svelte'
+  import SharedLoginForm from '@temporal-flow/blog-core/components/svelte/admin/LoginForm.svelte'
 
   let sharedLoginFormRef
 

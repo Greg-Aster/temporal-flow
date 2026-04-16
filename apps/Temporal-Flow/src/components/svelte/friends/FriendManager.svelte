@@ -1,5 +1,5 @@
 <script>
-import SharedFriendManager from '@merkin/blog-core/components/svelte/friends/FriendManager.svelte'
+import SharedFriendManager from '@temporal-flow/blog-core/components/svelte/friends/FriendManager.svelte'
 
 export let savedFriends = []
 </script>

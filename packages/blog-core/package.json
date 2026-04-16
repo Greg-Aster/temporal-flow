@@ -1,5 +1,5 @@
 {
-  "name": "@merkin/blog-core",
+  "name": "@temporal-flow/blog-core",
   "version": "0.1.0",
   "type": "module",
   "main": "./src/index.ts",

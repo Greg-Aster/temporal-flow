@@ -15,7 +15,7 @@ temporal-flow/
 ├── packages/
 │   └── blog-core/          # Shared components, layouts, schemas, styles
 ├── apps/
-│   └── example/            # Your first blog (start here)
+│   └── Temporal-Flow/      # Your first blog (start here)
 ├── scripts/                # Deploy helpers
 ├── .github/workflows/      # CI/CD for GitHub Pages
 ├── package.json            # Root workspace
@@ -43,7 +43,7 @@ pnpm dev
 
 ## Configure Your Site
 
-Edit `apps/example/src/config/config.ts`:
+Edit `apps/Temporal-Flow/src/config/config.ts`:
 
 ```ts
 export const siteConfig: SiteConfig = {
@@ -86,7 +86,7 @@ category: "Guide"
 ## Adding a Second Site
 
 ```bash
-cp -r apps/example apps/my-travel-blog
+cp -r apps/Temporal-Flow apps/my-travel-blog
 # Update package name in apps/my-travel-blog/package.json
 # Update hue/title in src/config/config.ts
 # Add scripts to root package.json:
@@ -108,18 +108,18 @@ Each site generates `/rss.xml`. To follow another Temporal Flow blog, click **Fr
 
 Push to `main` — GitHub Actions builds and deploys automatically via `.github/workflows/deploy.yml`.
 
-For a **custom domain**: create `apps/example/CNAME` containing your domain name.
+For a **custom domain**: create `apps/Temporal-Flow/CNAME` containing your domain name.
 
 ### Cloudflare Pages
 
-Set build command: `pnpm build` and output directory: `apps/example/dist`.
+Set build command: `pnpm build` and output directory: `apps/Temporal-Flow/dist`.
 
 ---
 
 ## Architecture
 
 - `packages/blog-core/` — shared components, layouts, schemas, styles
-- `apps/example/` — the example site; fork this to create new sites
+- `apps/Temporal-Flow/` — the starter site; fork this to create new sites
 - Override any component by placing a file at the same path in your app
 
 ---
@@ -138,4 +138,4 @@ Set build command: `pnpm build` and output directory: `apps/example/dist`.
 
 ## License
 
-[MIT](apps/example/LICENSE.md) — fork freely, make it yours.
+[MIT](apps/Temporal-Flow/LICENSE.md) — fork freely, make it yours.

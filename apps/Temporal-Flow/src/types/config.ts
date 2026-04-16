@@ -19,4 +19,4 @@ export type {
   PasswordConfig,
   ProfileConfig,
   SiteConfig,
-} from '@merkin/blog-core/types'
+} from '@temporal-flow/blog-core/types'

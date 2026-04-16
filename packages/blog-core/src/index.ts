@@ -1,4 +1,4 @@
-// @merkin/blog-core - Shared blog functionality for Merkin sites
+// @temporal-flow/blog-core - Shared blog functionality for Merkin sites
 
 // Constants
 export * from './constants'

@@ -7,7 +7,7 @@ import {
   getTagUrl as getSharedTagUrl,
   pathsEqual as pathsEqualShared,
   url as sharedUrl,
-} from '@merkin/blog-core/utils'
+} from '@temporal-flow/blog-core/utils'
 
 export function pathsEqual(path1: string, path2: string): boolean {
   return pathsEqualShared(path1, path2)

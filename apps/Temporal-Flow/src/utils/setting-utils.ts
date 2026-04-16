@@ -7,7 +7,7 @@ import {
   getStoredTheme as getSharedStoredTheme,
   setHue as setSharedHue,
   setTheme as setSharedTheme,
-} from '@merkin/blog-core/utils'
+} from '@temporal-flow/blog-core/utils'
 
 export function getDefaultHue(): number {
   return getSharedDefaultHue(250)

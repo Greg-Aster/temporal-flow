@@ -1,5 +1,5 @@
 <script>
-import SharedFriendContentIntegrator from '@merkin/blog-core/components/svelte/friends/FriendContentIntegrator.svelte'
+import SharedFriendContentIntegrator from '@temporal-flow/blog-core/components/svelte/friends/FriendContentIntegrator.svelte'
 </script>
 
 <SharedFriendContentIntegrator />

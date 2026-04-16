@@ -1,5 +1,5 @@
 <script lang="ts">
-import SharedDisplaySettings from '@merkin/blog-core/components/widget/DisplaySettings.svelte'
+import SharedDisplaySettings from '@temporal-flow/blog-core/components/widget/DisplaySettings.svelte'
 import I18nKey from '@i18n/i18nKey'
 import { i18n } from '@i18n/translation'
 </script>

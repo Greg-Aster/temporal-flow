@@ -6,7 +6,7 @@ import {
   friendsSchema,
   assetDataSchema,
   updatesSchema,
-} from '@merkin/blog-core/schemas/content'
+} from '@temporal-flow/blog-core/schemas/content'
 
 const posts = defineCollection({ schema: postsSchema })
 const spec = defineCollection({ schema: specSchema })

@@ -15,4 +15,4 @@ export {
   PAGE_SIZE,
   PAGE_WIDTH,
   UNCATEGORIZED,
-} from '@merkin/blog-core/constants'
+} from '@temporal-flow/blog-core/constants'

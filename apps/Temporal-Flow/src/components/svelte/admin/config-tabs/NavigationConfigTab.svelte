@@ -1,5 +1,5 @@
 <script>
-  import SharedNavigationConfigTab from '@merkin/blog-core/components/svelte/admin/config-tabs/NavigationConfigTab.svelte'
+  import SharedNavigationConfigTab from '@temporal-flow/blog-core/components/svelte/admin/config-tabs/NavigationConfigTab.svelte'
 
   export let navBarConfig
 </script>
